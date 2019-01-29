@@ -6,9 +6,9 @@ const url2 = 'https://search.naver.com/search.naver?where=nexearch&query=';
 const url3 = '&sm=top_lve&ie=utf8';
 let pop_list = [];        //인기검색어 담는 배열
 let final_list = [];      //최종으로 인기검색어의 연관검색어를 담는 배열
-let num_rlv = [];
+let num_rlv = [];         //각 인기검색어마다의 연관검색어 수를 담는 배열
 
-function get_popWord() {  //인기검색어를 뽑아내는 함수(popWord = popular word)
+var get_popWord = function () {  //인기검색어를 뽑아내는 함수(popWord = popular word)
   return new Promise(function (resolve, reject) {     //get_popWord() 함수는 Promise를 요청
     request(url, function (error, response, html) {   //html request
       
@@ -33,13 +33,58 @@ function get_popWord() {  //인기검색어를 뽑아내는 함수(popWord = pop
           }
         }
       )
-
       resolve(pop_list);    //pop_list를 promise의 결과 인자로 전달
-      //resolve(htmlData); //왜 안되지??
     });
   })
 }
 
+//var map2 = function() {
+  //let map3 = pop_list.map(function(word_array) {
+var map2 = function(word_array) {
+  return new Promise(function (resolve, reject) {
+
+    console.log("Word_array : ", word_array);
+    let final_url = encodeURI(url2 + word_array.word + url3);   //최종 url 생성
+
+    request(final_url, function (error, response, html) {       //최종 url로 request
+
+      let $2 = cheerio.load(html);
+      let relative_word = $2('#nx_related_keywords > dl > dd.lst_relate._related_keyword_list > ul > li');
+      let temp_list = [];
+
+      relative_word.each( 
+        function () {
+          let temp_word = $2(this).find('a').text();
+          temp_list.push(temp_word);
+          num_rlv[word_array.rank - 1] = $2(this).find('a').attr('data-idx');
+          final_list[word_array.rank - 1] = temp_list;
+        }
+      )
+      resolve(final_list[word_array.rank - 1]);
+    })
+  })
+}
+
+async function ABC() {
+  console.log("시작");
+  let abc = await get_popWord();
+  //let def = await DEF(abc);
+  console.log("pop_list? : ", abc);
+  let map3 = await pop_list.map(map2());
+  for await (promise of map3) {
+    for(j=0; j<10; j++)
+    {
+      console.log((j+1) + '위 검색어 : ', pop_list[j].word);
+      for(i=0; i<num_rlv[j]; i++)
+      console.log(every_rlv[j][i]);
+    }
+  }
+  //console.log(map2);
+};
+
+ABC();
+
+/*
 get_popWord().then((pop_list2) => {     //인기 검색어 추출 후, pop_list를 인자로 받아옴
   console.log("팝 리스트 :", pop_list2);
 
@@ -91,11 +136,4 @@ get_popWord().then((pop_list2) => {     //인기 검색어 추출 후, pop_list�
 }).catch((error) => {
   console.error(error);
 });
-
- 
-
-
-
-
-
-
+*/
