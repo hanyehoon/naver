@@ -39,7 +39,7 @@ var get_popWord = function () {  //인기검색어를 뽑아내는 함수(popWor
 }
 
 //var map2 = function() {
-  //let map3 = pop_list.map(function(word_array) {
+//let map3 = pop_list.map(function(word_array) {
 var map2 = function(word_array) {
   return new Promise(function (resolve, reject) {
 
@@ -70,8 +70,19 @@ async function ABC() {
   let abc = await get_popWord();
   //let def = await DEF(abc);
   console.log("pop_list? : ", abc);
-  let map3 = await pop_list.map(map2());
-  for await (promise of map3) {
+  let temp = abc;
+  console.log("temp : ", temp);
+  let map3;
+  (async () => {
+    map3 = await abc.map(map2(temp));
+  })
+  console.log(map3);
+
+  /*
+  let temp = abc;
+  let map3 = await temp.map(map2(abc));
+  console.log("깨욧!? : ", map3);
+  for await (promise1 of map3) {
     for(j=0; j<10; j++)
     {
       console.log((j+1) + '위 검색어 : ', pop_list[j].word);
@@ -79,7 +90,7 @@ async function ABC() {
       console.log(every_rlv[j][i]);
     }
   }
-  //console.log(map2);
+  */
 };
 
 ABC();
