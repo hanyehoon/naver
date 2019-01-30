@@ -4,38 +4,29 @@ const request = require('request');
 const url = 'https://www.naver.com';
 const url2 = 'https://search.naver.com/search.naver?where=nexearch&query=';
 const url3 = '&sm=top_lve&ie=utf8';
-let pop_list = [];        //인기검색어 담는 배열
 let final_list = [];      //최종으로 인기검색어의 연관검색어를 담는 배열
 let num_rlv = [];         //각 인기검색어마다의 연관검색어 수를 담는 배열
 
-var get_popWord = function () {  //인기검색어를 뽑아내는 함수(popWord = popular word)
-  return new Promise(function (resolve, reject) {     //get_popWord() 함수는 Promise를 요청
-    request(url, function (error, response, html) {   //html request
-      
-      if(error){  //에러 체크
-        reject(0);
-      }
+var get_popWord = async function () {  //인기검색어를 뽑아내는 함수(popWord = pop lar word)
+    let pop_list = [];        //인기검색어 담는 배열
+
+    await request(url, async function (error, response, html) {   //html request
 
       const $ = cheerio.load(html);
       const htmlString = $('#PM_ID_ct > div.header > div.section_navbar > div.area_hotkeyword.PM_CL_realtimeKeyword_base > div.ah_roll.PM_CL_realtimeKeyword_rolling_base > div > ul > li');  //DOM 객체를 가져옴
 
-      htmlString.each(  //가져온 DOM 객체에서 각각의 데이터 추출
-        function() {
-          let htmlData = new Object();  //DOM 객체에서 추출한 데이터를 저장할 새로운 객체
-          //htmlData.link = $(this).find('a').attr('href');   //링크
-          htmlData.rank = $(this).find($('.ah_r')).text();    //인기 순위
-          htmlData.word = $(this).find($('.ah_k')).text();    //인기 검색어
+      return await Promise.all(Object.keys(htmlString).map((value) => {
 
-          if(htmlData.rank < 11)  //10위까지만 추출
-          {
-            pop_list[htmlData.rank - 1] = htmlData;  //객체를 pop_list(인기 검색어 리스트)에 push
-            //pop_list.push(htmlData);
-          }
-        }
-      )
-      resolve(pop_list);    //pop_list를 promise의 결과 인자로 전달
+        let htmlData = new Object();  //DOM 객체에서 추출한 데이터를 저장할 새로운 객체
+          //htmlData.link = $(this).find('a').attr('href');   //링크
+          htmlData.rank = $(htmlString[value]).find($('.ah_r')).text();    //인기 순위
+          htmlData.word = $(htmlString[value]).find($('.ah_k')).text();    //인기 검색어
+
+          return htmlData;
+      }));
+
     });
-  })
+    return pop_list;
 }
 
 //var map2 = function() {
